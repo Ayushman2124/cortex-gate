@@ -21,7 +21,7 @@ sequenceDiagram
     Kafka_Req->>Orchestrator: Consume Event
     Orchestrator->>DB: Query Context & Persist State
     Orchestrator->>Gemini: Generate Response
-    Gemini-->>Orchestrator: Stream Tokens
+    Gemini-->>Orchestrator: Generated Answer
     Orchestrator->>Kafka_Res: Publish Response Event
     Kafka_Res->>API_Gateway: Consume Event
     API_Gateway-->>Client: Route to User (WebSocket)
@@ -91,15 +91,26 @@ mvn spring-boot:run
 
 ## Load Testing
 
-A `k6` load test script is provided in the `scripts/` directory to simulate concurrent WebSocket interactions.
+A `k6` load test script is provided in the `scripts/` directory to simulate concurrent HTTP requests to the API Gateway.
 
 ```bash
 k6 run scripts/load-test.js
 ```
 
-**Example Observed Metrics (Local Environment):**
-```
-vus..................: 50      min=50           max=50
-http_req_duration....: avg=185ms min=120ms med=160ms max=450ms p(90)=250ms p(95)=300ms
-http_reqs............: 1000    15.5/s
+**Example Observed Metrics:**
+```text
+  █ checks
+
+    ✓ is status 200
+
+    checks.........................: 100.00% ✓ 1742      ✗ 0
+    data_received..................: 412 kB  3.4 kB/s
+    data_sent......................: 243 kB  2.0 kB/s
+    http_req_duration..............: avg=342.5ms min=124ms   med=315ms   max=854ms   p(90)=482ms   p(95)=564ms
+    http_req_failed................: 0.00%   ✓ 0         ✗ 1742
+    http_reqs......................: 1742    14.5 reqs/s
+    iteration_duration.............: avg=1.34s   min=1.12s   med=1.31s   max=1.85s   p(90)=1.48s   p(95)=1.56s
+    iterations.....................: 1742    14.5 iters/s
+    vus............................: 2       min=2       max=20
+    vus_max........................: 20      min=20      max=20
 ```
