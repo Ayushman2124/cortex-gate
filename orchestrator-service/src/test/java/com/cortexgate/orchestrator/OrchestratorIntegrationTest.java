@@ -13,6 +13,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.embedding.EmbeddingModel;
 
 @SpringBootTest
 @Testcontainers
@@ -34,6 +35,10 @@ class OrchestratorIntegrationTest {
     // Mock ChatClient Builder so it doesn't attempt to make real API calls or fail on missing Gemini API key
     @MockBean
     private ChatClient.Builder chatClientBuilder;
+
+    // Mock EmbeddingModel so MongoDbAtlasVectorStore doesn't try to call the API to determine dimensions
+    @MockBean
+    private EmbeddingModel embeddingModel;
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
