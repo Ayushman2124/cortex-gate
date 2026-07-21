@@ -44,6 +44,8 @@ class OrchestratorIntegrationTest {
         registry.add("spring.kafka.bootstrap-servers", kafkaContainer::getBootstrapServers);
         registry.add("spring.data.redis.host", redisContainer::getHost);
         registry.add("spring.data.redis.port", () -> redisContainer.getMappedPort(6379).toString());
+        registry.add("spring.data.redis.password", () -> "");
+        registry.add("GEMINI_API_KEY", () -> "dummy-key");
     }
 
     @Test
