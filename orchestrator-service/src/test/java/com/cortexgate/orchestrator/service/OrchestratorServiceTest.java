@@ -31,7 +31,7 @@ class OrchestratorServiceTest {
     @Mock private RedisVectorService vectorService;
     @Mock private ChatClient.Builder chatClientBuilder;
     @Mock private ChatClient chatClient;
-    @Mock private ChatClient.CallResponseSpec callResponseSpec;
+    @Mock private ChatClient.ChatClientRequest.CallPromptResponseSpec callResponseSpec;
     @Mock private ResponseProducerService responseProducer;
     @Mock private InteractionRecordRepository interactionRepository;
 
@@ -83,7 +83,7 @@ class OrchestratorServiceTest {
         when(semanticCache.searchSimilar("How does it scale?")).thenReturn(Optional.empty());
         when(vectorService.retrieveContext("How does it scale?")).thenReturn(List.of("Context document 1"));
         
-        ChatClient.ChatClientRequestSpec requestSpec = mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.ChatClientPromptRequest requestSpec = mock(ChatClient.ChatClientPromptRequest.class);
         when(chatClient.prompt(any(Prompt.class))).thenReturn(requestSpec);
         when(requestSpec.call()).thenReturn(callResponseSpec);
         when(callResponseSpec.content()).thenReturn("It scales horizontally.");
