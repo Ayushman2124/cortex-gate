@@ -19,6 +19,10 @@ spring:
   data:
     mongodb:
       uri: mongodb://root:password@localhost:27017/cortexgate?authSource=admin
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD}
   datasource:
     url: jdbc:postgresql://127.0.0.1:5434/cortexgate
     username: cortexuser
