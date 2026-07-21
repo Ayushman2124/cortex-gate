@@ -35,7 +35,7 @@ class RequestConsumerServiceTest {
         
         String jsonPayload = objectMapper.writeValueAsString(chatRequest);
 
-        requestConsumerService.consumeRequest(jsonPayload);
+        requestConsumerService.consumeChatRequest(jsonPayload);
 
         verify(orchestratorService).processRequest(argThat(req -> 
             "req-789".equals(req.getRequestId()) && "Test query".equals(req.getQuery())
@@ -46,7 +46,7 @@ class RequestConsumerServiceTest {
     void testConsumeRequest_InvalidJson_DoesNotThrow() {
         String invalidJson = "{ invalid_json }";
 
-        requestConsumerService.consumeRequest(invalidJson);
+        requestConsumerService.consumeChatRequest(invalidJson);
 
         // Verify that parsing failure gets caught and logged, but doesn't crash consumer
         verify(orchestratorService, never()).processRequest(any());
