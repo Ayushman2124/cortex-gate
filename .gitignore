@@ -36,3 +36,12 @@ build/
 
 ### Others ###
 *.log
+
+### Security & Environment ###
+.env
+*.env
+application-local.yml
+application-secrets.yml
+*credentials*.json
+*.pem
+
