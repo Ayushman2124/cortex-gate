@@ -14,6 +14,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.vectorstore.VectorStore;
 
 @SpringBootTest
 @Testcontainers
@@ -36,9 +37,10 @@ class OrchestratorIntegrationTest {
     @MockBean
     private ChatClient.Builder chatClientBuilder;
 
-    // Mock EmbeddingModel so MongoDbAtlasVectorStore doesn't try to call the API to determine dimensions
+    // Mock VectorStore so we don't need Atlas Search running in the Mongo container,
+    // and to prevent any EmbeddingModel API dimension checks during initialization.
     @MockBean
-    private EmbeddingModel embeddingModel;
+    private VectorStore vectorStore;
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
