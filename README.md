@@ -12,6 +12,7 @@ sequenceDiagram
     participant API_Gateway as API Gateway (WebSocket)
     participant Kafka_Req as Kafka (chat-requests)
     participant Orchestrator as Orchestrator Service
+    participant Cache as Redis (Semantic Cache)
     participant DB as MongoDB (Vector) / Postgres
     participant Gemini
     participant Kafka_Res as Kafka (chat-responses)
@@ -19,9 +20,17 @@ sequenceDiagram
     Client->>API_Gateway: Connect & Send Message
     API_Gateway->>Kafka_Req: Publish Request Event
     Kafka_Req->>Orchestrator: Consume Event
-    Orchestrator->>DB: Query Context & Persist State
-    Orchestrator->>Gemini: Generate Response
-    Gemini-->>Orchestrator: Generated Answer
+    Orchestrator->>Cache: Check Semantic Similarity
+    
+    alt Cache Hit
+        Cache-->>Orchestrator: Return Cached Response
+    else Cache Miss
+        Orchestrator->>DB: Query Context & Persist State
+        Orchestrator->>Gemini: Generate Response
+        Gemini-->>Orchestrator: Generated Answer
+        Orchestrator->>Cache: Cache New Response
+    end
+    
     Orchestrator->>Kafka_Res: Publish Response Event
     Kafka_Res->>API_Gateway: Consume Event
     API_Gateway-->>Client: Route to User (WebSocket)
@@ -31,13 +40,15 @@ sequenceDiagram
 
 - **Spring AI Integration**: Uses Gemini 2.5 Flash for chat generation and text-embedding-004 for vector embeddings.
 - **MongoDB Atlas Local**: Stores and queries high-dimensional vector data directly using MongoDB's vector search capabilities.
+- **Redis Semantic Cache**: Reduces redundant Gemini calls and latency for semantically similar repeat queries.
 - **Kafka Event Streaming**: Connects to an event bus for processing asynchronous orchestration requests.
 - **PostgreSQL**: Stores relational metadata and long-term state.
 
 ## Known Limitations & Tradeoffs
+- **Cache Staleness**: If underlying MongoDB documents are updated, there is currently no invalidation mechanism tied to the semantic cache; it may serve a stale answer indefinitely until manually flushed.
 - **Resilience**: The current implementation does not include advanced Kafka error handling (e.g., retries or Dead Letter Queues) for failed LLM generations.
 - **Consistency**: There is no distributed transaction or strict consistency mechanism guaranteeing synchronous updates between MongoDB vector writes and PostgreSQL transactional writes.
-- **Scalability**: While the architecture supports horizontal scaling for the Orchestrator, scaling the WebSocket API Gateway would require a sticky session or a pub/sub backplane (like Redis) which is not currently implemented.
+- **Scalability**: While the architecture supports horizontal scaling for the Orchestrator, scaling the WebSocket API Gateway would require a sticky session or a pub/sub backplane which is not currently implemented.
 
 ## Prerequisites
 
@@ -47,7 +58,7 @@ sequenceDiagram
 
 ## Running the Infrastructure
 
-To run the backing infrastructure (MongoDB, PostgreSQL, Kafka, and Zookeeper), copy `.env.example` to `.env` and set your passwords, then use Docker Compose:
+To run the backing infrastructure (MongoDB, PostgreSQL, Redis, Kafka, and Zookeeper), copy `.env.example` to `.env` and set your passwords, then use Docker Compose:
 
 ```bash
 docker-compose up -d
@@ -56,6 +67,7 @@ docker-compose up -d
 ### Services Started:
 - **MongoDB Atlas Local**: `localhost:27017`
 - **PostgreSQL**: `localhost:5434`
+- **Redis**: `localhost:6379`
 - **Kafka Broker**: `localhost:9092`
 - **Zookeeper**: `localhost:2181`
 
